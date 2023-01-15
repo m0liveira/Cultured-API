@@ -22,6 +22,7 @@ module.exports = {
     'consistent-return': 'off',
     'new-cap': 'off',
     'no-console': 'off',
-    'import/no-extraneous-dependencies': 'off'
+    'import/no-extraneous-dependencies': 'off',
+    'newline-per-chained-call': 'off'
   },
 };
