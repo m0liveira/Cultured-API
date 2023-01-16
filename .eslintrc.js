@@ -23,6 +23,10 @@ module.exports = {
     'new-cap': 'off',
     'no-console': 'off',
     'import/no-extraneous-dependencies': 'off',
-    'newline-per-chained-call': 'off'
+    'newline-per-chained-call': 'off',
+    'no-await-in-loop': 'off',
+    'no-unused-expressions': 'off',
+    'no-promise-executor-return': 'off',
+    'no-plusplus': 'off'
   },
 };

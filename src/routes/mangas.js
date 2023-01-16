@@ -2,6 +2,23 @@ const puppeteer = require('puppeteer');
 
 const url = 'https://manga4life.com/search/';
 
+async function loadAllMangas(page) {
+    try {
+        let buttonExists = true;
+        while (buttonExists) {
+            buttonExists = await page.evaluate(() => {
+                const button = document.querySelector('button.btn.btn-outline-primary.form-control.top-15.bottom-5.ng-scope');
+                if (!button) return false;
+                button.click();
+                return true;
+            });
+            await new Promise((resolve) => setTimeout(resolve, 1));
+        }
+    } catch (error) {
+        console.error(error);
+    }
+}
+
 module.exports = (app) => {
     const getAll = async (req, res) => {
         try {
@@ -9,7 +26,9 @@ module.exports = (app) => {
             const page = await browser.newPage();
             await page.goto(url);
 
-            await page.waitForSelector('.top-15.ng-scope');
+            await page.waitForSelector('div.top-15.ng-scope');
+
+            await loadAllMangas(page);
 
             // get all elements
             const mangas = await page.evaluate(() => {
@@ -24,6 +43,8 @@ module.exports = (app) => {
                     const image = getScrappedContent(row, '.img-fluid', 'src');
 
                     const title = getScrappedContent(row, '.SeriesName.ng-binding', 'textContent');
+
+                    const link = getScrappedContent(row, '.SeriesName.ng-binding', 'href');
 
                     const author = row.querySelector('div.row div.col-md-10.col-8 div.ng-scope:nth-of-type(1)');
                     let newStr = '';
@@ -49,6 +70,9 @@ module.exports = (app) => {
                     let genres = null;
                     if (unrefinedGenres !== null) { genres = unrefinedGenres.replace(/[\n\t\u200B\u00A0]/g, ' ').trim().replace(/\s+/g, ' ').replace('Genres: ', ''); }
 
+                    let popular = getScrappedContent(row, 'i.fas.fa-fire-alt.ng-scope', 'title');
+                    popular === 'Popular Manga' ? popular = true : popular = false;
+
                     return {
                         image,
                         title,
@@ -56,14 +80,18 @@ module.exports = (app) => {
                         year,
                         status,
                         chapters,
-                        genres
+                        genres,
+                        popular,
+                        link
                     };
                 });
             });
 
             await browser.close();
 
-            res.status(200).json(mangas);
+            const body = { mangas, length: mangas.length, status: 200 };
+
+            res.status(200).json(body);
         } catch (error) {
             res.status(500).json({ message: 'Error: something happened while scraping the website', error });
         }
