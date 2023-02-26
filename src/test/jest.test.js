@@ -1,4 +1,4 @@
-test('Validate main jest operations with numbers', () => {
+test('Test #1 - Validate main jest operations with numbers', () => {
   let number = null;
   expect(number).toBeNull();
   number = 10;
@@ -9,7 +9,7 @@ test('Validate main jest operations with numbers', () => {
   expect(number).toBeLessThan(11);
 });
 
-test('Validate main jest operations with objects', () => {
+test('Test #2 - Validate main jest operations with objects', () => {
   const obj = { name: 'Cultured', desc: 'Cultures is a tracker for manwhas, mangas, animes and more...', };
   expect(obj).toHaveProperty('name');
   expect(obj).toHaveProperty('name', 'Cultured');
