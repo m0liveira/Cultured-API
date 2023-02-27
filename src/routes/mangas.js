@@ -38,9 +38,9 @@ async function loadMoreMangas(page, iterations) {
     }
 }
 
-async function getAvailableMangas(page) {
+async function getAvailableMangas(page, skipTo) {
     // get all elements
-    const mangas = await page.evaluate(() => {
+    const mangas = await page.evaluate((skip) => {
         // get values from the scrapped content
         const getScrappedContent = (element, querySelector, attribute) => {
             const content = element.querySelector(querySelector);
@@ -48,7 +48,7 @@ async function getAvailableMangas(page) {
         };
 
         const rows = document.querySelectorAll('div.top-15.ng-scope');
-        return Array.from(rows).map((row) => {
+        return Array.from(rows).slice(skip).map((row) => {
             const image = getScrappedContent(row, '.img-fluid', 'src');
 
             const title = getScrappedContent(row, '.SeriesName.ng-binding', 'textContent');
@@ -94,7 +94,7 @@ async function getAvailableMangas(page) {
                 link
             };
         });
-    });
+    }, skipTo);
 
     return mangas;
 }
@@ -110,7 +110,7 @@ module.exports = (app) => {
 
             await loadAllMangas(page);
 
-            const mangas = await getAvailableMangas(page);
+            const mangas = await getAvailableMangas(page, 0);
 
             await browser.close();
 
@@ -127,6 +127,7 @@ module.exports = (app) => {
             const page = req.query.page || 1;
             if (page < 1) return res.status(400).json({ message: 'Error: Invalid parameter (page)', parameter: { details: 'page value has to be 1 or higher' }, status: 400 });
 
+            let index = 0;
             const browser = await puppeteer.launch();
             const browserPage = await browser.newPage();
             await browserPage.goto(`${url}/?sort=vm&desc=true`);
@@ -135,7 +136,9 @@ module.exports = (app) => {
 
             await loadMoreMangas(browserPage, page);
 
-            const mangas = await getAvailableMangas(browserPage);
+            page !== 1 ? index = (page - 1) * 30 : index = 0;
+
+            const mangas = await getAvailableMangas(browserPage, index);
 
             await browser.close();
 
