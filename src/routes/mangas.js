@@ -125,6 +125,8 @@ module.exports = (app) => {
     const getTrending = async (req, res) => {
         try {
             const page = req.query.page || 1;
+            if (page < 1) return res.status(400).json({ message: 'Error: Invalid parameter (page)', parameter: { details: 'page value has to be 1 or higher' }, status: 400 });
+
             const browser = await puppeteer.launch();
             const browserPage = await browser.newPage();
             await browserPage.goto(`${url}/?sort=vm&desc=true`);
