@@ -133,7 +133,7 @@ module.exports = (app) => {
 
             await browserPage.waitForSelector('div.top-15.ng-scope');
 
-            loadMoreMangas(browserPage, page);
+            await loadMoreMangas(browserPage, page);
 
             const mangas = await getAvailableMangas(browserPage);
 
