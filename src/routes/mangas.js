@@ -97,5 +97,13 @@ module.exports = (app) => {
         }
     };
 
-    return { getAll };
+    const getTrending = async (req, res) => {
+        try {
+            res.status(200).json({ message: 'it works', status: 200 });
+        } catch (error) {
+            res.status(500).json({ message: 'Error: something happened while scraping the website', error });
+        }
+    };
+
+    return { getAll, getTrending };
 };
