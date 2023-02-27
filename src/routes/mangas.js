@@ -107,7 +107,7 @@ module.exports = (app) => {
         try {
             const browser = await puppeteer.launch();
             const page = await browser.newPage();
-            await page.goto(url);
+            await page.goto(`${url}/?sort=vm&desc=true`);
 
             await page.waitForSelector('div.top-15.ng-scope');
 
@@ -115,11 +115,11 @@ module.exports = (app) => {
 
             await browser.close();
 
-            const body = { mangas, length: mangas.length, status: 200 };
+            const body = { mangas: mangas[29], length: mangas.length, status: 200 };
 
             res.status(200).json(body);
         } catch (error) {
-            res.status(500).json({ message: 'Error: something happened while scraping the website', error });
+            res.status(500).json({ message: 'Error: something happened while scraping the website', error, status: 500 });
         }
     };
 
