@@ -19,6 +19,25 @@ async function loadAllMangas(page) {
     }
 }
 
+async function loadMoreMangas(page, iterations) {
+    try {
+        let buttonExists = true;
+        for (let i = 1; i < iterations; i++) {
+            if (!buttonExists) break;
+
+            buttonExists = await page.evaluate(() => {
+                const button = document.querySelector('button.btn.btn-outline-primary.form-control.top-15.bottom-5.ng-scope');
+                if (!button) return false;
+                button.click();
+                return true;
+            });
+            await new Promise((resolve) => setTimeout(resolve, 1));
+        }
+    } catch (error) {
+        console.error(error);
+    }
+}
+
 async function getAvailableMangas(page) {
     // get all elements
     const mangas = await page.evaluate(() => {
@@ -105,13 +124,16 @@ module.exports = (app) => {
 
     const getTrending = async (req, res) => {
         try {
+            const page = req.query.page || 1;
             const browser = await puppeteer.launch();
-            const page = await browser.newPage();
-            await page.goto(`${url}/?sort=vm&desc=true`);
+            const browserPage = await browser.newPage();
+            await browserPage.goto(`${url}/?sort=vm&desc=true`);
 
-            await page.waitForSelector('div.top-15.ng-scope');
+            await browserPage.waitForSelector('div.top-15.ng-scope');
 
-            const mangas = await getAvailableMangas(page);
+            loadMoreMangas(browserPage, page);
+
+            const mangas = await getAvailableMangas(browserPage);
 
             await browser.close();
 
