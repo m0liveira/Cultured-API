@@ -99,7 +99,7 @@ module.exports = (app) => {
 
             res.status(200).json(body);
         } catch (error) {
-            res.status(500).json({ message: 'Error: something happened while scraping the website', error });
+            res.status(500).json({ message: 'Error: something happened while scraping the website', error, status: 500 });
         }
     };
 
@@ -115,7 +115,7 @@ module.exports = (app) => {
 
             await browser.close();
 
-            const body = { mangas: mangas[29], length: mangas.length, status: 200 };
+            const body = { mangas, length: mangas.length, status: 200 };
 
             res.status(200).json(body);
         } catch (error) {
