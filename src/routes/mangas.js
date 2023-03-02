@@ -152,6 +152,10 @@ module.exports = (app) => {
 
     const getManga = async (req, res) => {
         try {
+            if (!req.query.slug) {
+                res.status(400).json({ message: 'Required query params missing, (parameter: slug)', status: 400 });
+            }
+
             const slug = req.query.slug || '';
             res.status(200).json({ message: 'its working!', status: res.status, slug });
         } catch (error) {
