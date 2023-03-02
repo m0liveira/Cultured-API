@@ -150,5 +150,14 @@ module.exports = (app) => {
         }
     };
 
-    return { getAll, getTrending };
+    const getManga = async (req, res) => {
+        try {
+            const slug = req.query.slug || '';
+            res.status(200).json({ message: 'its working!', status: res.status, slug });
+        } catch (error) {
+            res.status(500).json({ message: 'Error: something happened while scraping the website', error, status: 500 });
+        }
+    };
+
+    return { getAll, getTrending, getManga };
 };

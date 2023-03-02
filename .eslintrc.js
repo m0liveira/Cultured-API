@@ -27,6 +27,7 @@ module.exports = {
     'no-await-in-loop': 'off',
     'no-unused-expressions': 'off',
     'no-promise-executor-return': 'off',
-    'no-plusplus': 'off'
+    'no-plusplus': 'off',
+    'object-curly-newline': 'off'
   },
 };
