@@ -1,6 +1,6 @@
 const puppeteer = require('puppeteer');
 
-const url = 'https://manga4life.com/search/';
+const url = 'https://manga4life.com/';
 
 async function loadAllMangas(page) {
     try {
@@ -99,12 +99,20 @@ async function getAvailableMangas(page, skipTo) {
     return mangas;
 }
 
+async function getMangaContent(page) {
+    const content = await page.evaluate(() => {
+
+    });
+
+    return content;
+}
+
 module.exports = (app) => {
     const getAll = async (req, res) => {
         try {
             const browser = await puppeteer.launch();
             const page = await browser.newPage();
-            await page.goto(url);
+            await page.goto(`${url}search/`);
 
             await page.waitForSelector('div.top-15.ng-scope');
 
@@ -116,9 +124,9 @@ module.exports = (app) => {
 
             const body = { mangas, length: mangas.length, status: 200 };
 
-            res.status(200).json(body);
+            return res.status(200).json(body);
         } catch (error) {
-            res.status(500).json({ message: 'Error: something happened while scraping the website', error, status: 500 });
+            return res.status(500).json({ message: 'Error: something happened while scraping the website', error, status: 500 });
         }
     };
 
@@ -130,7 +138,7 @@ module.exports = (app) => {
             let index = 0;
             const browser = await puppeteer.launch();
             const browserPage = await browser.newPage();
-            await browserPage.goto(`${url}/?sort=vm&desc=true`);
+            await browserPage.goto(`${url}search/?sort=vm&desc=true`);
 
             await browserPage.waitForSelector('div.top-15.ng-scope');
 
@@ -144,22 +152,35 @@ module.exports = (app) => {
 
             const body = { mangas, length: mangas.length, status: 200 };
 
-            res.status(200).json(body);
+            return res.status(200).json(body);
         } catch (error) {
-            res.status(500).json({ message: 'Error: something happened while scraping the website', error, status: 500 });
+            return res.status(500).json({ message: 'Error: something happened while scraping the website', error, status: 500 });
         }
     };
 
     const getManga = async (req, res) => {
         try {
+            const slug = req.query.slug || '';
+
             if (!req.query.slug) {
-                res.status(400).json({ message: 'Required query params missing, (parameter: slug)', status: 400 });
+                return res.status(400).json({ message: 'Required query params missing, (parameter: slug)', status: 400 });
             }
 
-            const slug = req.query.slug || '';
-            res.status(200).json({ message: 'its working!', status: res.status, slug });
+            const browser = await puppeteer.launch();
+            const page = await browser.newPage();
+            await page.goto(`${url}manga/${slug}`);
+
+            await page.waitForSelector('div.BoxBody');
+
+            const r = await page.content();
+
+            await browser.close();
+
+            const body = { r, slug, status: 200, url: `${url}manga/${slug}` };
+
+            return res.status(200).json(body);
         } catch (error) {
-            res.status(500).json({ message: 'Error: something happened while scraping the website', error, status: 500 });
+            return res.status(500).json({ message: 'Error: something happened while scraping the website', error, status: 500 });
         }
     };
 
