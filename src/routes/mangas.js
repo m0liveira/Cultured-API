@@ -100,11 +100,25 @@ async function getAvailableMangas(page, skipTo) {
 }
 
 async function getMangaContent(page) {
-    const content = await page.evaluate(() => {
+    const pageContent = await page.evaluate(() => {
+        const getScrappedContent = (element, querySelector, attribute) => {
+            const content = element.querySelector(querySelector);
+            return content ? content[attribute] : null;
+        };
 
+        const manga = document.querySelectorAll('div.BoxBody div.row')[2];
+        const listElement = document.querySelectorAll('div.BoxBody div.row ul.list-group.list-group-flush li');
+
+        const image = getScrappedContent(manga, '.img-fluid', 'src');
+        const title = getScrappedContent(listElement[0], 'h1', 'textContent');
+
+        const linksElement = document.querySelector('div.BoxBody div.row ul.list-group.list-group-flush li:nth-of-type(3)');
+        const authors = getScrappedContent(linksElement, 'a', 'textContent');
+
+        return { image, title, authors };
     });
 
-    return content;
+    return pageContent;
 }
 
 module.exports = (app) => {
@@ -172,11 +186,11 @@ module.exports = (app) => {
 
             await page.waitForSelector('div.BoxBody');
 
-            const r = await page.content();
+            const content = await getMangaContent(page);
 
             await browser.close();
 
-            const body = { r, slug, status: 200, url: `${url}manga/${slug}` };
+            const body = { content, slug, status: 200, url: `${url}manga/${slug}` };
 
             return res.status(200).json(body);
         } catch (error) {
