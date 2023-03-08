@@ -121,10 +121,10 @@ async function getMangaDetails(page) {
                 return temp;
             };
 
-            const manga = document.querySelectorAll('div.BoxBody div.row')[2];
             const listElement = document.querySelectorAll('div.BoxBody div.row ul.list-group.list-group-flush li');
 
-            const image = getScrappedContent(manga, '.img-fluid', 'src');
+            const image = document.querySelector('div.BoxBody div.row div.col-md-3.col-sm-4.col-3.top-5 img.img-fluid.bottom-5').src;
+
             const title = getScrappedContent(listElement[0], 'h1', 'textContent');
 
             const authors = getArrContent(3).trim().toLowerCase().replace(/\b[a-z]/g, (letter) => letter.toUpperCase()).slice(0, -1);
@@ -172,10 +172,35 @@ async function getChapters(page) {
     }
 }
 
+async function getRelatedMangas(page) {
+    try {
+        const pageContent = await page.evaluate(async () => {
+            const getScrappedContent = (element, querySelector, attribute) => {
+                const content = element.querySelector(querySelector);
+                return content ? content[attribute] : null;
+            };
+
+            const relateds = document.querySelectorAll('div.BoxBody div.row.top-15.ng-scope div.col-lg-7 div.top-15.RelatedManga div.row div.col-sm-3.col-6.top-10.ng-scope');
+
+            return Array.from(relateds).map((related) => {
+                const image = getScrappedContent(related, 'a div.ImgHolder .img-fluid', 'src');
+                const name = getScrappedContent(related, 'a div.NameHolder.ng-binding', 'textContent');
+                const link = getScrappedContent(related, 'a', 'href');
+
+                return { image, name, url: link };
+            });
+        });
+
+        return pageContent;
+    } catch (error) {
+        return error;
+    }
+}
+
 async function getMangaPageContent(page) {
     const mangaDetails = await getMangaDetails(page);
     let mangaChapters = await getChapters(page);
-    // const relatedMangas = await getMangaDetails(page);
+    const relatedMangas = await getRelatedMangas(page);
 
     while (mangaChapters.length === 0) {
         mangaChapters = await getChapters(page);
@@ -190,7 +215,8 @@ async function getMangaPageContent(page) {
         year: mangaDetails.year,
         status: mangaDetails.status,
         description: mangaDetails.description,
-        chapters: mangaChapters
+        chapters: mangaChapters,
+        related: relatedMangas
     };
 
     return manga;
