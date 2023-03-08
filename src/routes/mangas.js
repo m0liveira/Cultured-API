@@ -99,11 +99,21 @@ async function getAvailableMangas(page, skipTo) {
     return mangas;
 }
 
-async function getMangaContent(page) {
-    const pageContent = await page.evaluate(() => {
+async function getMangaDetails(page) {
+    const pageContent = await page.evaluate(async () => {
         const getScrappedContent = (element, querySelector, attribute) => {
             const content = element.querySelector(querySelector);
             return content ? content[attribute] : null;
+        };
+
+        const getArrContent = (index) => {
+            let temp = '';
+
+            document.querySelectorAll(`div.BoxBody div.row ul.list-group.list-group-flush li:nth-of-type(${index}) a`).forEach((link) => {
+                temp += `${link.textContent}, `;
+            });
+
+            return temp;
         };
 
         const manga = document.querySelectorAll('div.BoxBody div.row')[2];
@@ -112,13 +122,28 @@ async function getMangaContent(page) {
         const image = getScrappedContent(manga, '.img-fluid', 'src');
         const title = getScrappedContent(listElement[0], 'h1', 'textContent');
 
-        const linksElement = document.querySelector('div.BoxBody div.row ul.list-group.list-group-flush li:nth-of-type(3)');
-        const authors = getScrappedContent(linksElement, 'a', 'textContent');
+        const authors = getArrContent(3).trim().toLowerCase().replace(/\b[a-z]/g, (letter) => letter.toUpperCase()).slice(0, -1);
 
-        return { image, title, authors };
+        const genres = getArrContent(4).slice(0, -2);
+
+        const type = document.querySelector('div.BoxBody div.row ul.list-group.list-group-flush li:nth-of-type(5) a').textContent;
+
+        const year = document.querySelector('div.BoxBody div.row ul.list-group.list-group-flush li:nth-of-type(6) a').textContent;
+
+        const status = document.querySelector('div.BoxBody div.row ul.list-group.list-group-flush li:nth-of-type(8) a').textContent.split(' ')[0];
+
+        const description = document.querySelector('div.BoxBody div.row ul.list-group.list-group-flush li:nth-of-type(10) div').textContent;
+
+        return { image, title, authors, genres, type, year, status, description };
     });
 
     return pageContent;
+}
+
+async function getMangaPageContent(page) {
+    const mangaDetails = await getMangaDetails(page);
+
+    return { manga: mangaDetails };
 }
 
 module.exports = (app) => {
@@ -186,7 +211,7 @@ module.exports = (app) => {
 
             await page.waitForSelector('div.BoxBody');
 
-            const content = await getMangaContent(page);
+            const content = await getMangaPageContent(page);
 
             await browser.close();
 
